@@ -22,15 +22,9 @@ excel_file = 'neueVersion-ohneAlphabet-ohneAenderung-ohnedoppeltesDatum.xlsx'  #
 df = pd.read_excel(excel_file)
 
 # Erstellen eines Ordners, um die JSON-Dateien zu speichern
-output_folder = 'json_output_4'
+output_folder = 'json_output_7'
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
-
-# Initialisierung der letzten JSON-Dokumente
-previous_json = None
-
-# Zähler für Dateien, die keinen Titel in Spalte A haben
-file_counter = 1
 
 # Funktion zur Umwandlung des referenceDate in ein gültiges ISO-8601-Datum
 def format_reference_date(date):
@@ -139,19 +133,11 @@ for index, row in df.iterrows():
     #            "value": None
     #        })
 
-    # Speichere das aktuelle JSON-Dokument in eine Datei
-    if pd.notna(row['A']):
-        # Verwende den Titel aus Spalte A als Dateinamen
-        file_name = f"{row['A']}.json"
-    else:
-        # Wenn der Titel leer ist, verwende einen fortlaufenden Zähler
-        file_name = f"document_{file_counter}.json"
-        file_counter += 1
-
     # Schreibe das JSON-Dokument in eine Datei
     json_files.append(json_data)
 
 for file_counter, json_file in enumerate(json_files):
+    file_name = f"{json_file['resources']['draft']['title']}.json"
     # Stelle sicher, dass der Dateiname keine ungültigen Zeichen enthält
     file_name = file_name.replace("/", "_").replace("\\", "_").replace(":", "_").replace("\"", "")
     # Speicherort und vollständiger Dateiname
