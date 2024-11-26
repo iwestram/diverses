@@ -40,8 +40,23 @@ def format_reference_date(date):
         return date.isoformat()
     return str(date)  # Wenn es bereits ein String ist, gebe ihn direkt zurück
 
+json_files = []
+
 # Durch jede Zeile iterieren und JSON-Dokumente erstellen
 for index, row in df.iterrows():
+
+    # Wenn der Titel in Spalte A leer ist, füge Verweise aus Spalte D (title) und Spalte E (url) hinzu
+    if pd.isna(row['A']):
+        previous_json = json_files[-1]  # Wir holen das zuletzt erstellte JSON-Dokument
+        previous_json['resources']['draft']['references'].append({
+            "url": row['E'],
+            "type": {"key": "9990"},
+            "title": row['D'],
+            "referenceType": "url",
+            "urlDataType": {"key": "21"}
+        })
+        continue
+
     # Erstellen des Basis-JSON-Dokuments
     json_data = {
         "_export_date": datetime.now().isoformat(),
@@ -98,14 +113,11 @@ for index, row in df.iterrows():
                 "spatialRepresentationType": [],
                 "featureCatalogueDescription": {"citation": [], "featureTypes": []},
                 "absoluteExternalPositionalAccuracy": {},
-                 "title": row['A'],
+                "title": row['A'],
                 "_type": "InGridGeoDataset"
-                }
             }
         }
-    
-    # Setze den Titel für das Dokument
-    json_data['resources']['draft']['title'] = row['A']
+    }
 
     # Füge den URL-Verweis hinzu
     if not pd.isna(row['B']):
@@ -136,27 +148,16 @@ for index, row in df.iterrows():
         file_name = f"document_{file_counter}.json"
         file_counter += 1
 
-    # Stelle sicher, dass der Dateiname keine ungültigen Zeichen enthält
-    file_name = file_name.replace("/", "_").replace("\\", "_").replace(":", "_")
+    # Schreibe das JSON-Dokument in eine Datei
+    json_files.append(json_data)
 
+for file_counter, json_file in enumerate(json_files):
+    # Stelle sicher, dass der Dateiname keine ungültigen Zeichen enthält
+    file_name = file_name.replace("/", "_").replace("\\", "_").replace(":", "_").replace("\"", "")
     # Speicherort und vollständiger Dateiname
     file_path = os.path.join(output_folder, file_name)
-
-    # Schreibe das JSON-Dokument in eine Datei
     with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(json_data, f, indent=4, ensure_ascii=False)
+        json.dump(json_file, f, indent=4, ensure_ascii=False)
+        print(f"JSON-Dokument gespeichert: {file_path}")
 
-    print(f"JSON-Dokument gespeichert: {file_path}")
-
-    # Wenn der Titel in Spalte A leer ist, füge Verweise aus Spalte D (title) und Spalte E (url) hinzu
-    if pd.isna(row['A']):
-        previous_json = json_data  # Wir speichern das zuletzt erstellte JSON-Dokument
-        previous_json['resources']['draft']['references'].append({
-            "url": row['E'],
-            "type": {"key": "9990"},
-            "title": row['D'],
-            "referenceType": "url",
-            "urlDataType": {"key": "21"}
-        })
-
-print(f"Fertig! {file_counter - 1} JSON-Dokumente wurden erstellt.")
+print(f"Fertig! {file_counter + 1} JSON-Dokumente wurden erstellt.")
