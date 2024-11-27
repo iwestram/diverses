@@ -1,5 +1,6 @@
 import requests
 import xml.etree.ElementTree as ET
+from urllib.parse import urlencode
 
 def extract_polygon_from_file(file_path, title):
     """
@@ -20,25 +21,38 @@ def extract_polygon_from_file(file_path, title):
     # Suche nach dem Titel-Element
     for elem in root.findall('.//app:Gebietsname', namespaces):
         if elem.text == title:
-            # Finde das zugehörige Polygon
-            polygon_elem = elem.find('.//gml:polygon', namespaces)
-            if polygon_elem is not None:
-                return polygon_elem.text.strip()  # Gibt das Polygon als String zurück
+            # Wenn der titel gefunden wird, suchen wir nach dem element app:the_geom
+            the_geom_elem = elem.find('.//app:the_geom', namespaces)
+            if the_geom_elem is not None:
+                # Nun extrahieren wir das Polygon innerhalb von app:the_geom
+                polygon_elem = the_geom_elem.find('.//gml:polygon', namespaces)
+                if polygon_elem is not None:
+                    return polygon_elem.text.strip()  # Gibt das Polygon als String zurück
     return None
 
 def send_polygon_to_service(polygon):
     """
     Sendet das Polygon per POST-Request an den externen Dienst.
     :param polygon: Das Polygon als String (gml:polygon).
+    :param export_format: Das gewünschte Exportformat (z.B. "WKT", "GeoJSON", "GML").    
     :return: Das WKT des Polygons.
     """
-    url = "https://geo-api.informationgrid.eu/v1/convert"  # Ersetze mit der tatsächlichen URL des Dienstes
+    base_url = "https://geo-api.informationgrid.eu/v1/convert"  # Ersetze mit der tatsächlichen URL des Dienstes
+
+    # URL-Parameter für exportFormat
+
+    query_params = {
+        'exportFormat': export_format
+    }
+
+    # Die URL mit den Query-Parametern zusammenbauen
+    url = f"{base_url}?{urlencode(query_params)}"
+
     headers = {'Content-Type': 'application/json'}
 
     # Daten für den POST-Request
     data = {
-        'polygon': polygon;
-        'exportFormat': wkt;
+        'polygon': polygon
     }
 
     response = requests.post(url, json=data, headers=headers)
