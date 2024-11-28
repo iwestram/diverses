@@ -12,10 +12,11 @@ def extract_polygon_from_file(file_path, title):
     tree = ET.parse(file_path)
     root = tree.getroot()
 
-    # Den Namespace definieren, um korrekt auf die Tags zuzugreifen
+    # Den Namespace definieren, um korrekt auf die Tags zuzugreifen.
     namespaces = {
         'app': 'http://www.degree.org/app',  # Ersetze mit dem echten Namespace
-        'gml': 'http://www.opengis.net/gml'  # Der Standard-GML Namespace
+        'gml': 'http://www.opengis.net/gml/3.2',  # Der Standard-GML Namespace
+        'wfs': 'http://www.opengis.net/wfs/2.0' # Der Namespace für WFS, wenn er benötigt wird.
     }
 
     # Suche nach dem Titel-Element
@@ -25,9 +26,9 @@ def extract_polygon_from_file(file_path, title):
             the_geom_elem = elem.find('.//app:the_geom', namespaces)
             if the_geom_elem is not None:
                 # Nun extrahieren wir das Polygon innerhalb von app:the_geom
-                polygon_elem = the_geom_elem.find('.//gml:polygon', namespaces)
-                if polygon_elem is not None:
-                    return polygon_elem.text.strip()  # Gibt das Polygon als String zurück
+                multi_surface_elem = the_geom_elem.find('.//gml:MultiSurface', namespaces)
+                if multi_surface_elem is not None:
+                    return multi_surface_elem.text.strip()  # Gibt das Polygon als String zurück
     return None
 
 def send_polygon_to_service(polygon):
@@ -42,7 +43,7 @@ def send_polygon_to_service(polygon):
     # URL-Parameter für exportFormat
 
     query_params = {
-        'exportFormat': export_format
+        'exportFormat': wkt
     }
 
     # Die URL mit den Query-Parametern zusammenbauen
@@ -81,14 +82,15 @@ def main():
     polygon = extract_polygon_from_file(file_path, title)
 
     if polygon:
+        print(f"Polygon gefunden!")
         # Polygon an den Dienst senden
-        wkt = send_polygon_to_service(polygon)
+        #wkt = send_polygon_to_service(polygon)
 
-        if wkt:
+        #if wkt:
             # WKT weiterverarbeiten
-            process_wkt(wkt)
-        else:
-            print("Fehler beim Abrufen des WKT.")
+        #    process_wkt(wkt)
+        #else:
+        #    print("Fehler beim Abrufen des WKT.")
     else:
         print(f"Kein Polygon für den Titel '{title}' gefunden.")
 
