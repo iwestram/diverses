@@ -35,31 +35,19 @@ def send_polygon_to_service(polygon):
     :return: Das WKT des Polygons.
     """
     base_url = "https://geo-api.informationgrid.eu/v1/convert"  # Ersetze mit der tatsächlichen URL des Dienstes
-
-    # URL-Parameter für exportFormat
-
     query_params = {
-        'exportFormat': wkt
+        'exportFormat': 'wkt'
     }
+    headers = {'Content-Type': 'application/xml'}
 
-    # Die URL mit den Query-Parametern zusammenbauen
-    url = f"{base_url}?{urlencode(query_params)}"
-
-    headers = {'Content-Type': 'application/json'}
-
-    # Daten für den POST-Request
-    data = {
-        'polygon': polygon
-    }
-
-    response = requests.post(url, json=data, headers=headers)
-
-    if response.status_code == 200:
-        # Extrahiere das WKT aus der Antwort
-        return response.json().get('wkt')
-    else:
+    response = requests.post(base_url, params=query_params, data=polygon, headers=headers)
+    try:
+        response.raise_for_status()
+    except:
         print(f"Fehler beim Abrufen des WKT: {response.status_code}")
         return None
+    # Extrahiere das WKT aus der Antwort
+    return response.text
 
 def process_wkt(wkt):
     """
