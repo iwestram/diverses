@@ -75,13 +75,13 @@ def main():
     if polygon:
         print(f"Polygon gefunden!")
         # Polygon an den Dienst senden
-        #wkt = send_polygon_to_service(polygon)
+        wkt = send_polygon_to_service(polygon)
 
-        #if wkt:
+        if wkt:
             # WKT weiterverarbeiten
-        #    process_wkt(wkt)
-        #else:
-        #    print("Fehler beim Abrufen des WKT.")
+           process_wkt(wkt)
+        else:
+           print("Fehler beim Abrufen des WKT.")
     else:
         print(f"Kein Polygon für den Titel '{title}' gefunden.")
 
