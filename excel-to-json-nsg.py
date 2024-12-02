@@ -18,7 +18,7 @@ import os
 #        return None
 
 # Excel-Datei einlesen
-excel_file = 'neueVersion-ohneAlphabet-ohneAenderung-ohnedoppeltesDatum.xlsx'  # Pfad zur Excel-Datei
+excel_file = 'nsg.xlsx'  # Pfad zur Excel-Datei
 df = pd.read_excel(excel_file)
 
 # Erstellen eines Ordners, um die JSON-Dateien zu speichern
