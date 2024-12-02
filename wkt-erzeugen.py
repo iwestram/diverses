@@ -9,6 +9,8 @@ namespaces = {
     'gml': 'http://www.opengis.net/gml/3.2',  # Der Standard-GML Namespace
     'wfs': 'http://www.opengis.net/wfs/2.0' # Der Namespace für WFS, wenn er benötigt wird.
 }
+for prefix, uri in namespaces.items():
+    ET.register_namespace(prefix, uri)
 
 
 def extract_polygon_from_file(file_path, title):
@@ -19,18 +21,10 @@ def extract_polygon_from_file(file_path, title):
     :return: Das Polygon als String (gml:polygon).
     """
     tree = ET.parse(file_path)
-    root = tree.getroot()
+    geometry_elem = tree.find(f'.//app:nsg[app:Gebietsname = "{title}"]/app:the_geom/*', namespaces)
 
-    # Suche nach dem Titel-Element
-    for elem in root.findall('.//app:Gebietsname', namespaces):
-        if elem.text == title:
-            # Wenn der titel gefunden wird, suchen wir nach dem element app:the_geom
-            the_geom_elem = elem.find('.//app:the_geom', namespaces)
-            if the_geom_elem is not None:
-                # Nun extrahieren wir das Polygon innerhalb von app:the_geom
-                multi_surface_elem = the_geom_elem.find('.//gml:MultiSurface', namespaces)
-                if multi_surface_elem is not None:
-                    return multi_surface_elem.text.strip()  # Gibt das Polygon als String zurück
+    if geometry_elem is not None:
+        return ET.tostring(geometry_elem, encoding='unicode') # Gibt das Polygon als String zurück
     return None
 
 def send_polygon_to_service(polygon):
