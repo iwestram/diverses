@@ -1,98 +1,89 @@
+import os
 import requests
 import xml.etree.ElementTree as ET
 from urllib.parse import urlencode
 
-def extract_polygon_from_file(file_path, title):
+
+# Den Namespace definieren, um korrekt auf die Tags zuzugreifen.
+namespaces = {
+    'app': 'http://www.deegree.org/app',  # Ersetze mit dem echten Namespace
+    'gml': 'http://www.opengis.net/gml/3.2',  # Der Standard-GML Namespace
+    'wfs': 'http://www.opengis.net/wfs/2.0' # Der Namespace für WFS, wenn er benötigt wird.
+}
+for prefix, uri in namespaces.items():
+    ET.register_namespace(prefix, uri)
+
+
+def extract_geometry_from_file(file_path, title):
     """
-    Extrahiert das Polygon aus der XML-Datei anhand des Titels.
+    Extrahiert die Geometrie aus der XML-Datei anhand des Titels.
     :param file_path: Der Pfad zur Textdatei.
     :param title: Der Titel (app:Gebietsname), nach dem gesucht werden soll.
-    :return: Das Polygon als String (gml:polygon).
+    :return: Die Geometrie als String (gml:*).
     """
     tree = ET.parse(file_path)
-    root = tree.getroot()
+    geometry_elem = tree.find(f'.//app:nsg[app:Gebietsname = "{title}"]/app:the_geom/*', namespaces)
 
-    # Den Namespace definieren, um korrekt auf die Tags zuzugreifen.
-    namespaces = {
-        'app': 'http://www.degree.org/app',  # Ersetze mit dem echten Namespace
-        'gml': 'http://www.opengis.net/gml/3.2',  # Der Standard-GML Namespace
-        'wfs': 'http://www.opengis.net/wfs/2.0' # Der Namespace für WFS, wenn er benötigt wird.
-    }
-
-    # Suche nach dem Titel-Element
-    for elem in root.findall('.//app:Gebietsname', namespaces):
-        if elem.text == title:
-            # Wenn der titel gefunden wird, suchen wir nach dem element app:the_geom
-            the_geom_elem = elem.find('.//app:the_geom', namespaces)
-            if the_geom_elem is not None:
-                # Nun extrahieren wir das Polygon innerhalb von app:the_geom
-                multi_surface_elem = the_geom_elem.find('.//gml:MultiSurface', namespaces)
-                if multi_surface_elem is not None:
-                    return multi_surface_elem.text.strip()  # Gibt das Polygon als String zurück
+    if geometry_elem is not None:
+        return ET.tostring(geometry_elem, encoding='unicode') # Gibt die Geometrie als String zurück
     return None
 
-def send_polygon_to_service(polygon):
+def send_geometry_to_service(geometry):
     """
-    Sendet das Polygon per POST-Request an den externen Dienst.
-    :param polygon: Das Polygon als String (gml:polygon).
-    :param export_format: Das gewünschte Exportformat (z.B. "WKT", "GeoJSON", "GML").    
-    :return: Das WKT des Polygons.
+    Sendet die Geometrie per POST-Request an den externen Dienst.
+    :param geometry: Die Geometrie als String (gml:*).
+    :param export_format: Das gewünschte Exportformat (z.B. "WKT", "GeoJSON", "GML").
+    :return: Das WKT der Geometrie.
     """
     base_url = "https://geo-api.informationgrid.eu/v1/convert"  # Ersetze mit der tatsächlichen URL des Dienstes
-
-    # URL-Parameter für exportFormat
-
     query_params = {
-        'exportFormat': wkt
+        'exportFormat': 'wkt'
     }
+    headers = {'Content-Type': 'application/xml'}
+    auth = (os.environ["API_USER"], os.environ["API_PASSWORD"])
 
-    # Die URL mit den Query-Parametern zusammenbauen
-    url = f"{base_url}?{urlencode(query_params)}"
-
-    headers = {'Content-Type': 'application/json'}
-
-    # Daten für den POST-Request
-    data = {
-        'polygon': polygon
-    }
-
-    response = requests.post(url, json=data, headers=headers)
-
-    if response.status_code == 200:
-        # Extrahiere das WKT aus der Antwort
-        return response.json().get('wkt')
-    else:
+    response = requests.post(base_url, params=query_params, data=geometry, headers=headers, auth=auth)
+    try:
+        response.raise_for_status()
+    except:
         print(f"Fehler beim Abrufen des WKT: {response.status_code}")
         return None
+    # Extrahiere das WKT aus der Antwort
+    return response.text
 
 def process_wkt(wkt):
     """
     Weiterverarbeitung des WKT (z. B. Ausgabe, Speicherung, Analyse).
-    :param wkt: Das WKT des Polygons.
+    :param wkt: Das WKT der Geometrie.
     """
     print("Empfangenes WKT:", wkt)
     # Hier kannst du das WKT weiterverarbeiten (z. B. in eine Datei speichern oder analysieren).
 
 def main():
+    # Prüfen, ob die Umgebungsvariablen API_USER und API_PASSWORD gesetzt sind
+    if "API_USER" not in os.environ or "API_PASSWORD" not in os.environ:
+        print("Umgebungsvariablen API_USER und API_PASSWORD müssen gesetzt sein.")
+        exit()
+
     # Datei und Titel definieren
     file_path = "nsg.xml"  # Pfad deiner XML-Datei
     title = "Oberheide"  # Titel, nach dem du suchst
 
-    # Polygon extrahieren
-    polygon = extract_polygon_from_file(file_path, title)
+    # Geometrie extrahieren
+    geometry = extract_geometry_from_file(file_path, title)
 
-    if polygon:
-        print(f"Polygon gefunden!")
-        # Polygon an den Dienst senden
-        #wkt = send_polygon_to_service(polygon)
+    if geometry:
+        print(f"Geometrie gefunden!")
+        # Geometrie an den Dienst senden
+        wkt = send_geometry_to_service(geometry)
 
-        #if wkt:
+        if wkt:
             # WKT weiterverarbeiten
-        #    process_wkt(wkt)
-        #else:
-        #    print("Fehler beim Abrufen des WKT.")
+           process_wkt(wkt)
+        else:
+           print("Fehler beim Abrufen des WKT.")
     else:
-        print(f"Kein Polygon für den Titel '{title}' gefunden.")
+        print(f"Keine Geometrie für den Titel '{title}' gefunden.")
 
 if __name__ == "__main__":
     main()
