@@ -14,7 +14,7 @@ def extract_polygon_from_file(file_path, title):
 
     # Den Namespace definieren, um korrekt auf die Tags zuzugreifen.
     namespaces = {
-        'app': 'http://www.degree.org/app',  # Ersetze mit dem echten Namespace
+        'app': 'http://www.deegree.org/app',  # Ersetze mit dem echten Namespace
         'gml': 'http://www.opengis.net/gml/3.2',  # Der Standard-GML Namespace
         'wfs': 'http://www.opengis.net/wfs/2.0' # Der Namespace für WFS, wenn er benötigt wird.
     }
