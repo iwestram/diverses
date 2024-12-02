@@ -1,3 +1,4 @@
+import os
 import requests
 import xml.etree.ElementTree as ET
 from urllib.parse import urlencode
@@ -39,8 +40,9 @@ def send_polygon_to_service(polygon):
         'exportFormat': 'wkt'
     }
     headers = {'Content-Type': 'application/xml'}
+    auth = (os.environ["API_USER"], os.environ["API_PASSWORD"])
 
-    response = requests.post(base_url, params=query_params, data=polygon, headers=headers)
+    response = requests.post(base_url, params=query_params, data=polygon, headers=headers, auth=auth)
     try:
         response.raise_for_status()
     except:
@@ -58,6 +60,11 @@ def process_wkt(wkt):
     # Hier kannst du das WKT weiterverarbeiten (z. B. in eine Datei speichern oder analysieren).
 
 def main():
+    # Prüfen, ob die Umgebungsvariablen API_USER und API_PASSWORD gesetzt sind
+    if "API_USER" not in os.environ or "API_PASSWORD" not in os.environ:
+        print("Umgebungsvariablen API_USER und API_PASSWORD müssen gesetzt sein.")
+        exit()
+
     # Datei und Titel definieren
     file_path = "nsg.xml"  # Pfad deiner XML-Datei
     title = "Oberheide"  # Titel, nach dem du suchst
