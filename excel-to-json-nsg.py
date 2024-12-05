@@ -1,28 +1,15 @@
 import pandas as pd
-#import requests
 import json
 from datetime import datetime
 import os
-
-# Funktion zum Abrufen von WKT-Daten basierend auf einem Titel
-#def get_wkt_from_external_service(title):
-#    try:
-#        # Beispiel-URL für den externen Dienst (dies muss angepasst werden)
-#        url = f"https://example.com/api/get_wkt?title={title}"
-#        response = requests.get(url)
-#        response.raise_for_status()  # Sicherstellen, dass der Request erfolgreich war
-#        data = response.json()
-#        return data.get("wkt", None)  # WKT aus der Antwort extrahieren
-#    except Exception as e:
-#        print(f"Fehler beim Abrufen von WKT für {title}: {e}")
-#        return None
+from wkt_erzeugen import wkt_for_title    
 
 # Excel-Datei einlesen
-excel_file = 'nsg.xlsx'  # Pfad zur Excel-Datei
+excel_file = 'nsg-normal.xlsx'  # Pfad zur Excel-Datei
 df = pd.read_excel(excel_file)
 
 # Erstellen eines Ordners, um die JSON-Dateien zu speichern
-output_folder = 'json_output_7'
+output_folder = 'json_output'
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
@@ -31,14 +18,19 @@ def format_reference_date(date):
     if pd.isna(date):
         return None  # Falls leer, gebe None zurück
     if isinstance(date, pd.Timestamp):  # Wenn es ein Pandas Timestamp ist, formatiere es
-        return date.isoformat()
-    return str(date)  # Wenn es bereits ein String ist, gebe ihn direkt zurück
+        return date.isoformat()+"Z"
+#    return str(date).replace(" ", "T")+"Z"  # Wenn es bereits ein String ist, gebe ihn direkt zurück
+    if isinstance(date, datetime):        
+        return date.isoformat()+"Z"
+    return datetime.strptime(date, '%Y-%m-%d %H:%M:%S').isoformat()+"Z"
 
 json_files = []
 
 # Durch jede Zeile iterieren und JSON-Dokumente erstellen
 for index, row in df.iterrows():
 
+    #if index > 10: 
+    #    break
     # Wenn der Titel in Spalte A leer ist, füge Verweise aus Spalte D (title) und Spalte E (url) hinzu
     if pd.isna(row['A']):
         previous_json = json_files[-1]  # Wir holen das zuletzt erstellte JSON-Dokument
@@ -96,7 +88,7 @@ for index, row in df.iterrows():
                 "dataQuality": {"completenessOmission": {}},
                 "description": row['D'],
                 "distribution": {"format": []},
-                "pointOfContact": [],
+                "pointOfContact": [{"ref" : "254f3b48-7dc2-438a-8480-69b879c64229", "type" : {"key" : "7"}}, {"ref" : "254f3b48-7dc2-438a-8480-69b879c64229","type" : {"key" : "12"}}],
                 "dataQualityInfo": {"lineage": {"source": {"processStep": {"description": []}, "descriptions": []}}},
                 "topicCategories": [{"key": "7"}],
                 "advProductGroups": [],
@@ -123,15 +115,15 @@ for index, row in df.iterrows():
         })
 
     # Wenn ein Raumbezug (Spalte E) angegeben ist, rufe das WKT ab und füge es hinzu
-    #if not pd.isna(row['E']):
-    #    wkt = get_wkt_from_external_service(row['E'])
-    #    if wkt:
-    #        json_data['resources']['draft']['spatial']['references'].append({
-    #            "wkt": wkt,
-    #            "type": "wkt",
-    #            "title": row['E'],
-    #            "value": None
-    #        })
+    if not pd.isna(row['A']):
+        wkt = wkt_for_title(row['A'])
+        if wkt:
+            json_data['resources']['draft']['spatial']['references'].append({
+                "wkt": wkt,
+                "type": "wkt",
+                "title": row['A'],
+                "value": None
+            })
 
     # Schreibe das JSON-Dokument in eine Datei
     json_files.append(json_data)
@@ -143,6 +135,9 @@ for file_counter, json_file in enumerate(json_files):
     # Speicherort und vollständiger Dateiname
     file_path = os.path.join(output_folder, file_name)
     with open(file_path, 'w', encoding='utf-8') as f:
+        print(file_name)
+        if file_name == "Dammühlenfließniederung.json":
+            print(json_file)
         json.dump(json_file, f, indent=4, ensure_ascii=False)
         print(f"JSON-Dokument gespeichert: {file_path}")
 
