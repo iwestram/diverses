@@ -2,7 +2,8 @@ import pandas as pd
 import json
 from datetime import datetime
 import os
-from wkt_erzeugen import wkt_for_title    
+from wkt_erzeugen import wkt_for_title
+import uuid
 
 # Excel-Datei einlesen
 excel_file = 'nsg-normal.xlsx'  # Pfad zur Excel-Datei
@@ -29,9 +30,10 @@ json_files = []
 # Durch jede Zeile iterieren und JSON-Dokumente erstellen
 for index, row in df.iterrows():
 
+    myuuid = uuid.uuid4()
     # Zum Testen einen Stopp einbauen
-    # if index > 10: 
-    #    break
+    if index > 10:
+        break
 
     # Wenn der Titel in Spalte A leer ist, füge Verweise aus Spalte D (title) und Spalte E (url) hinzu
     if pd.isna(row['A']):
@@ -87,7 +89,8 @@ for index, row in df.iterrows():
                 },
                 "extraInfo": {"legalBasicsDescriptions": []},
                 "qualities": [],
-                "isOpenData": "true",
+                "identifier" : str(myuuid),
+                # "isOpenData": "true",
                 "references": [],
                 "resolution": [],
                 "dataQuality": {"completenessOmission": {}},
