@@ -29,8 +29,10 @@ json_files = []
 # Durch jede Zeile iterieren und JSON-Dokumente erstellen
 for index, row in df.iterrows():
 
-    #if index > 10: 
+    # Zum Testen einen Stopp einbauen
+    # if index > 10: 
     #    break
+
     # Wenn der Titel in Spalte A leer ist, füge Verweise aus Spalte D (title) und Spalte E (url) hinzu
     if pd.isna(row['A']):
         previous_json = json_files[-1]  # Wir holen das zuletzt erstellte JSON-Dokument
@@ -46,7 +48,7 @@ for index, row in df.iterrows():
     # Erstellen des Basis-JSON-Dokuments
     json_data = {
         "_export_date": datetime.now().isoformat(),
-        "_version": "1.2.0",
+        "_version": "1.1.0",
         "_profile": "ingrid",
         "resources": {
             "draft": {
@@ -80,15 +82,18 @@ for index, row in df.iterrows():
                     "status": None,
                     "resourceDateType": None
                 },
+               "subType" : {
+                    "key" : "5"
+                },
                 "extraInfo": {"legalBasicsDescriptions": []},
                 "qualities": [],
-                "properties": {"subType": {"key": "5"}},
+                "isOpenData": "true",
                 "references": [],
                 "resolution": [],
                 "dataQuality": {"completenessOmission": {}},
                 "description": row['D'],
                 "distribution": {"format": []},
-                "pointOfContact": [{"ref" : "254f3b48-7dc2-438a-8480-69b879c64229", "type" : {"key" : "7"}}, {"ref" : "254f3b48-7dc2-438a-8480-69b879c64229","type" : {"key" : "12"}}],
+                "pointOfContact": [{"ref" : "dbb25aa5-14cc-4d2f-b78c-7c9b0f43c7f5", "type" : {"key" : "7"}}, {"ref" : "dbb25aa5-14cc-4d2f-b78c-7c9b0f43c7f5","type" : {"key" : "12"}}],
                 "dataQualityInfo": {"lineage": {"source": {"processStep": {"description": []}, "descriptions": []}}},
                 "topicCategories": [{"key": "7"}],
                 "advProductGroups": [],
@@ -136,8 +141,8 @@ for file_counter, json_file in enumerate(json_files):
     file_path = os.path.join(output_folder, file_name)
     with open(file_path, 'w', encoding='utf-8') as f:
         print(file_name)
-        if file_name == "Dammühlenfließniederung.json":
-            print(json_file)
+    #    if file_name == "Dammühlenfließniederung.json":
+    #        print(json_file)
         json.dump(json_file, f, indent=4, ensure_ascii=False)
         print(f"JSON-Dokument gespeichert: {file_path}")
 
