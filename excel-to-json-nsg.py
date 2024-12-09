@@ -42,7 +42,6 @@ for index, row in df.iterrows():
             "url": row['E'],
             "type": {"key": "9990"},
             "title": row['D'],
-            "referenceType": "url",
             "urlDataType": {"key": "21"}
         })
         continue
@@ -62,7 +61,7 @@ for index, row in df.iterrows():
                 },
                 "spatial": {
                     "references": [],
-                    "spatialSystems": [{"key": "84"}],
+                    "spatialSystems": [{"key": "25833"}],
                     "verticalExtent": {"unitOfMeasure": None}
                 },
                 "keywords": {
@@ -99,6 +98,8 @@ for index, row in df.iterrows():
                 "pointOfContact": [{"ref" : "dbb25aa5-14cc-4d2f-b78c-7c9b0f43c7f5", "type" : {"key" : "7"}}, {"ref" : "dbb25aa5-14cc-4d2f-b78c-7c9b0f43c7f5","type" : {"key" : "12"}}],
                 "dataQualityInfo": {"lineage": {"source": {"processStep": {"description": []}, "descriptions": []}}},
                 "topicCategories": [{"key": "7"}],
+                "keywords": {"gemet": [], "umthes": [],
+                "free": [{"label": "Naturschutzgebiet"}]},
                 "advProductGroups": [],
                 "graphicOverviews": [],
                 "digitalTransferOptions": [],
@@ -117,9 +118,8 @@ for index, row in df.iterrows():
     if not pd.isna(row['B']):
         json_data['resources']['draft']['references'].append({
             "url": row['B'],
-            "type": {"key": "9999"},
+            "type": {"key": "5302"},
             "title": "Verordnung",
-            "referenceType": "url"
         })
 
     # Wenn ein Raumbezug (Spalte E) angegeben ist, rufe das WKT ab und füge es hinzu
