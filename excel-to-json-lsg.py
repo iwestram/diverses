@@ -57,7 +57,7 @@ for index, row in df.iterrows():
                     "languages": ["150"]
                 },
                 "lineage": {
-                    "statement": "Naturschutzgebiete in Brandenburg"
+                    "statement": "Landschaftsschutzgebiete in Brandenburg"
                 },
                 "spatial": {
                     "references": [],
