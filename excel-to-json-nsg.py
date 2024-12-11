@@ -32,8 +32,8 @@ for index, row in df.iterrows():
 
     myuuid = uuid.uuid4()
     # Zum Testen einen Stopp einbauen
-    if index > 10:
-        break
+    #if index > 10:
+    #    break
 
     # Wenn der Titel in Spalte A leer ist, füge Verweise aus Spalte D (title) und Spalte E (url) hinzu
     if pd.isna(row['A']):
@@ -43,6 +43,18 @@ for index, row in df.iterrows():
             "type": {"key": "9990"},
             "title": row['D'],
             "urlDataType": {"key": "21"}
+        })
+        continue
+
+    # Wenn der Titel in Spalte A "Änderung" lautet, füge Verweise aus Spalte B (url) hinzu
+    if row['A'] == "» Änderung":
+        previous_json = json_files[-1]  # Wir holen das zuletzt erstellte JSON-Dokument
+        previous_json['resources']['draft']['references'].append({
+            "url": row['B'],
+            "type": {"key": "5302"},
+            "title": "Änderung",
+            "urlDataType": {"key": "21"},
+            "explanation": row['D'],
         })
         continue
 
@@ -74,7 +86,7 @@ for index, row in df.iterrows():
                     "characterSet": None
                 },
                 "resource": {
-                    "useConstraints": [{"title": {"key": "26"}}],
+                    "useConstraints": [{"title": {"key": "1"}, "source": "MLUK"}],
                     "accessConstraints": []
                 },
                 "temporal": {
@@ -95,7 +107,7 @@ for index, row in df.iterrows():
                 "dataQuality": {"completenessOmission": {}},
                 "description": row['D'],
                 "distribution": {"format": []},
-                "pointOfContact": [{"ref" : "dbb25aa5-14cc-4d2f-b78c-7c9b0f43c7f5", "type" : {"key" : "7"}}, {"ref" : "dbb25aa5-14cc-4d2f-b78c-7c9b0f43c7f5","type" : {"key" : "12"}}],
+                "pointOfContact": [{"ref" : "FE51271C-F54C-4F11-9F36-F20F571F4783", "type" : {"key" : "7"}}, {"ref" : "FE51271C-F54C-4F11-9F36-F20F571F4783","type" : {"key" : "12"}}],
                 "dataQualityInfo": {"lineage": {"source": {"processStep": {"description": []}, "descriptions": []}}},
                 "topicCategories": [{"key": "7"}],
                 "keywords": {"gemet": [], "umthes": [],
