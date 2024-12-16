@@ -124,7 +124,7 @@ for index, row in df.iterrows():
 
     # Wenn ein Raumbezug (Spalte E) angegeben ist, rufe das WKT ab und füge es hinzu
     if not pd.isna(row['A']):
-        wkt = wkt_for_title(row['A'])
+        wkt = wkt_for_title('lsg.xml', 'lsg', row['A'])
         if wkt:
             json_data['resources']['draft']['spatial']['references'].append({
                 "wkt": wkt,
