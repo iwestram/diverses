@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import requests
 import xml.etree.ElementTree as ET
@@ -87,5 +89,6 @@ def wkt_for_title(file_path, element, title):
     else:
         print(f"Keine Geometrie für den Titel '{title}' gefunden.")
 
+
 if __name__ == "__main__":
-    wkt_for_title()
+    print(wkt_for_title('lsg.xml', 'lsg', 'Templiner Seenkreuz'))
