@@ -15,7 +15,7 @@ namespaces = {
 for prefix, uri in namespaces.items():
     ET.register_namespace(prefix, uri)
 
-def extract_geometry_from_file(file_path, title):
+def extract_geometry_from_file(file_path, element, title):
     """
     Extrahiert die Geometrie aus der XML-Datei anhand des Titels.
     :param file_path: Der Pfad zur Textdatei.
@@ -23,7 +23,7 @@ def extract_geometry_from_file(file_path, title):
     :return: Die Geometrie als String (gml:*).
     """
     tree = ET.parse(file_path)
-    geometry_elem = tree.find(f'.//app:nsg[app:Gebietsname = "{title.replace("\"", '')}"]/app:the_geom/*', namespaces)
+    geometry_elem = tree.find(f'.//app:{element}[app:Gebietsname = "{title.replace("\"", '')}"]/app:the_geom/*', namespaces)
 
     if geometry_elem is not None:
         return ET.tostring(geometry_elem, encoding='unicode') # Gibt die Geometrie als String zurück
@@ -52,18 +52,18 @@ def send_geometry_to_service(geometry):
     # Extrahiere das WKT aus der Antwort
     return response.text
 
-def wkt_for_title(title):
+def wkt_for_title(file_path, element, title):
     # Prüfen, ob die Umgebungsvariablen API_USER und API_PASSWORD gesetzt sind
     if "API_USER" not in os.environ or "API_PASSWORD" not in os.environ:
         print("Umgebungsvariablen API_USER und API_PASSWORD müssen gesetzt sein.")
         exit()
 
     # Datei und Titel definieren
-    file_path = "nsg.xml"  # Pfad deiner XML-Datei
+    # file_path = "nsg.xml"  # Pfad deiner XML-Datei
     #title = "Oberheide"  # Titel, nach dem du suchst
 
     # Geometrie extrahieren
-    geometry = extract_geometry_from_file(file_path, title)
+    geometry = extract_geometry_from_file(file_path, element, title)
 
     if geometry:
         # print(f"Geometrie gefunden!")
