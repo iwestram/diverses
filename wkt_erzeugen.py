@@ -23,7 +23,16 @@ def extract_geometry_from_file(file_path, element, title):
     :return: Die Geometrie als String (gml:*).
     """
     tree = ET.parse(file_path)
-    geometry_elem = tree.find(f'.//app:{element}[app:Gebietsname = "{title.replace("\"", '')}"]/app:the_geom/*', namespaces)
+    geometry_elems = tree.findall(f'.//app:{element}[app:Gebietsname = "{title.replace("\"", '')}"]/app:the_geom/*', namespaces)
+
+    if len(geometry_elems) == 1:
+        geometry_elem = geometry_elems[0]
+    elif len(geometry_elems) > 1:
+        # Wenn mehrere Einträge für einen Titel vorhanden sind, fasse alle Geometrien in einer MultiGeometry zusammen
+        geometry_elem = ET.Element('gml:MultiGeometry')
+        gm = ET.SubElement(geometry_elem, 'gml:geometryMembers')
+        for ge in geometry_elems:
+            gm.append(ge)
 
     if geometry_elem is not None:
         return ET.tostring(geometry_elem, encoding='unicode') # Gibt die Geometrie als String zurück
